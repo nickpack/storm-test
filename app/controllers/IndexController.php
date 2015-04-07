@@ -38,7 +38,19 @@ class IndexController extends \vendor\ControllerBase {
                             )
             )->execute()->getGraphObject(GraphUser::className());
 
-            $this->render('user', array('usersname' => $user_profile->getName()));
+            $user = new \app\models\User();
+
+            $user->setName($user_profile->getName())
+                 ->setFbId($user_profile->getId())
+                 ->save();
+
+            //$dbms = \vendor\DBConnector::getInstance();
+            //$other_idiots = $dbms->query('SELECT * FROM `users` ORDER BY LoginTimestamp ASC')->setFetchMode(PDO::FETCH_ASSOC);
+            // @todo Process other idiots and display them - wanky templating has bitten me and I'm out of time.
+
+            $this->render('user', array(
+                'usersname' => $user_profile->getName()
+            ));
 
         } catch(FacebookRequestException $e) {
             $this->error($e->getMessage());
