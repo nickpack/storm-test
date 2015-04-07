@@ -15,6 +15,7 @@ class ControllerBase {
     protected $_template_file;
     protected $_template_dir;
     protected $_template_path;
+    protected $_layout = 'layout';
 
     public function __construct()
     {
@@ -55,18 +56,46 @@ class ControllerBase {
     {
         $template_file = sprintf('%s/%s/%s.html', $this->_template_path, $this->getTemplateDir(), $template_file);
         if (!file_exists($template_file)) {
-            print $template_file;
             throw new \vendor\exception\TemplateException('Template file not found');
         }
 
         $template = file_get_contents($template_file);
         foreach ($values as $key => $value) {
             $needle = strtoupper($key);
-
             $template = str_replace(sprintf('{{%s}}', $needle), $value, $template);
-
-            echo $template;
-            exit;
         }
+
+        $layout =  sprintf('%s/%s.html', $this->_template_path, $this->_layout);
+        if (!file_exists($layout)) {
+            throw new \vendor\exception\TemplateException('Layout file not found');
+        }
+
+        print str_replace('{{CONTENT}}', $template, file_get_contents($layout));
+        exit;
+    }
+
+    public function redirect($controller, $action)
+    {
+        header(sprintf('Location: /%s/%s', $controller, $action));
+        exit;
+    }
+
+    public function error($message)
+    {
+        $controller = new \app\controllers\ErrorController();
+        $controller->fivehundred($message);
+    }
+
+    protected function getFaceacheSession()
+    {
+        $helper = new \Facebook\FacebookRedirectLoginHelper(FACEACHE_REDIRECT_URL);
+        $session = false; // prevent use before definition in the case of failed login
+        try {
+            $session = $helper->getSessionFromRedirect();
+        } catch(\Exception $ex) {
+            // log it or something
+        }
+
+        return $session;
     }
 }

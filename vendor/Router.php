@@ -15,16 +15,21 @@ class Router {
 
     public function __construct()
     {
-        if (!$_SERVER['REQUEST_URI']) {
+        if (!$_SERVER['REQUEST_URI'] or $_SERVER['REQUEST_URI'] == '/') {
             $this->setController('index')
                  ->setAction('index');
         } else {
-            $request_parts = explode('/', $_SERVER['REQUEST_URI']);
+            $request_parts = explode('/', preg_replace('/\?.*$/', '', $_SERVER['REQUEST_URI']));
 
             array_shift($request_parts);
 
-            $this->setController($request_parts[0])
-                 ->setAction($request_parts[1]);
+            if (count($request_parts) > 1) {
+                $this->setController($request_parts[0])
+                     ->setAction($request_parts[1]);
+            } else {
+                $this->setController($request_parts[0])
+                     ->setAction('index');
+            }
         }
     }
 
